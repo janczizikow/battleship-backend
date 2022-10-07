@@ -1,30 +1,30 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/janczizikow/battleship-backend/rooms"
+	"go.uber.org/zap"
 )
 
-func hello(w http.ResponseWriter, req *http.Request) {
-
-	fmt.Fprintf(w, "hello\n")
-}
-
-func headers(w http.ResponseWriter, req *http.Request) {
-
-	for name, headers := range req.Header {
-		for _, h := range headers {
-			fmt.Fprintf(w, "%v: %v\n", name, h)
-		}
-	}
-}
-
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/hello", hello)
-	r.HandleFunc("/headers", headers)
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
 
-	http.Handle("/", r)
+	roomHandler := rooms.NewHandler(logger)
+	r := mux.NewRouter()
+	r.HandleFunc("/rooms", roomHandler.Create).Methods(http.MethodPost)
+	r.HandleFunc("/rooms/{roomCode}/join", roomHandler.Join).Methods(http.MethodPost)
+
+	serv := http.Server{
+		Addr:         ":3000",
+		Handler:      r,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+	}
+
+	log.Fatal(serv.ListenAndServe())
 }
