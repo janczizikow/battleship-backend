@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+
 	"go.uber.org/zap"
 )
 
@@ -30,9 +31,6 @@ type room struct {
 }
 
 var rooms = map[int64]room{}
-
-// TODO: check why this doesn't work:
-// rooms := new(map[int64]room)
 
 func (h Handler) Create(w http.ResponseWriter, req *http.Request) {
 	data, err := io.ReadAll(req.Body)
@@ -92,8 +90,14 @@ func (h Handler) Join(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	foundRoom := rooms[roomId]
-	// TODO: check if we actually found a room
+	foundRoom, exists := rooms[roomId]
+
+	if !exists {
+		h.logger.Info("couldn't find a room", zap.Int64("roomId", roomId))
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"error": "Room Not Found"}`))
+		return
+	}
 
 	bytes, err := json.Marshal(foundRoom)
 
@@ -102,5 +106,6 @@ func (h Handler) Join(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte(`{"error": "Internal Server Error"}`))
 		return
 	}
+
 	w.Write(bytes)
 }
