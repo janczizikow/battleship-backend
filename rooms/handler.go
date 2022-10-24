@@ -32,6 +32,15 @@ type room struct {
 
 var rooms = map[int64]room{}
 
+func (r *room) GenerateId() {
+	id := rand.Intn(9999)
+	if _, exists := rooms[int64(id)]; exists {
+		r.GenerateId()
+	} else {
+		r.Id = id
+	}
+}
+
 func (h Handler) Create(w http.ResponseWriter, req *http.Request) {
 	data, err := io.ReadAll(req.Body)
 
@@ -52,8 +61,7 @@ func (h Handler) Create(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// TODO: check if the id already exists in the map
-	newRoom.Id = rand.Intn(9999)
+	newRoom.GenerateId()
 	h.logger.Info("appending new room", zap.String("roomName", *newRoom.Name))
 	rooms[int64(newRoom.Id)] = newRoom
 
