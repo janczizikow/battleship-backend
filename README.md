@@ -58,8 +58,3 @@ response:
 {
   error: 'room not found'
 }
-
-
-TODO:
-- [] helper for errors
--
