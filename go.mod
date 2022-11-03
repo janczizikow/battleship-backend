@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/gorilla/websocket v1.5.0
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 )
